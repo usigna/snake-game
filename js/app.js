@@ -1,5 +1,5 @@
 const board = document.querySelector('.board');
-const score = document.querySelector('.score');
+const scoreDisplay = document.querySelector('.score');
 const highScore = document.querySelector('.high-score');
 let food;
 let snake;
@@ -9,6 +9,8 @@ let snakePositionX = 2;
 let snakePositionY = 2;
 let directionX = 0;
 let directionY = 0;
+let score = 0;
+let snakeBody = [];
 
 function randomFoodPosition() {
   foodPositionX = Math.floor(Math.random() * 30) + 1;
@@ -58,6 +60,15 @@ function changeDirection(e) {
 
   snake.classList.remove('snake');
   createSnake();
+
+  if (foodPositionX === snakePositionX && foodPositionY === snakePositionY) {
+    food.classList.remove('food');
+    createFood();
+    score++;
+    scoreDisplay.textContent = score;
+    snakeBody.push([foodPositionX, foodPositionY]);
+    // console.log(snakeBody);
+  }
 }
 
 function startGame() {

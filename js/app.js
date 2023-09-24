@@ -1,80 +1,81 @@
-const board = document.querySelector('.board');
+const squares = document.querySelectorAll('.board div');
 const scoreDisplay = document.querySelector('.score');
-const highScore = document.querySelector('.high-score');
-let food;
-let snake;
-let foodPositionX;
-let foodPositionY;
-let snakePositionX = 2;
-let snakePositionY = 2;
-let directionX = 0;
-let directionY = 0;
+const startBtn = document.querySelector('.start');
+const width = 20;
+let currentIndex = 0;
+let appleIndex = 0;
+let currentSnake = [2, 1, 0];
+let direction = 1;
 let score = 0;
-let snakeBody = [];
+let speed = 0.9;
+let intervalTime = 0;
+let interval = 0;
 
-function randomFoodPosition() {
-  foodPositionX = Math.floor(Math.random() * 30) + 1;
-  foodPositionY = Math.floor(Math.random() * 30) + 1;
+function startGame() {
+  currentSnake.forEach(index => squares[index].classList.remove('snake'));
+  squares[appleIndex].classList.remove('apple');
+  clearInterval(interval);
+  score = 0;
+  randomApple();
+  direction = 1;
+  scoreDisplay.textContent = score;
+  intervalTime = 200;
+  currentSnake = [2, 1, 0];
+  currentIndex = 0;
+  currentSnake.forEach(index => squares[index].classList.add('snake'));
+  interval = setInterval(moveOutcomes, intervalTime);
 }
 
-function createFood() {
-  food = document.createElement('div');
-  food.classList.add('food');
-  randomFoodPosition();
-  food.style.gridArea = `${foodPositionX} / ${foodPositionY}`;
-  board.appendChild(food);
-}
+function moveOutcomes() {
+  if (
+    (currentSnake[0] + width >= (width * width) && direction === width) ||
+    (currentSnake[0] % width === width -1 && direction === 1) ||
+    (currentSnake[0] % width === 0 && direction === -1) ||
+    (currentSnake[0] - width < 0 && direction === -width) ||
+    squares[currentSnake[0] + direction].classList.contains('snake')
+    ) {
+      return clearInterval(interval);
+  }
 
-function createSnake() {
-  snake = document.createElement('div');
-  snake.classList.add('snake');
-  snakePositionX += directionX;
-  snakePositionY += directionY;
-  snake.style.gridArea = `${snakePositionX} / ${snakePositionY}`;
-  board.appendChild(snake);
-}
+  const tail = currentSnake.pop();
+  squares[tail].classList.remove('snake');
+  currentSnake.unshift(currentSnake[0] + direction);
 
-function changeDirection(e) {
-  switch (e.keyCode) {
-    case 37:
-      //  console.log('Left key');
-       directionX = 0;
-       directionY = -1;
-    break;
-    case 38:
-      //  console.log('Up key');
-       directionX = -1;
-       directionY = 0;
-    break;
-    case 39:
-      //  console.log('Right key');
-       directionX = 0;
-       directionY = 1;
-    break;
-    case 40:
-      //  console.log('Down key');
-       directionX = 1;
-       directionY = 0;
-    break;
- }
-
-  snake.classList.remove('snake');
-  createSnake();
-
-  if (foodPositionX === snakePositionX && foodPositionY === snakePositionY) {
-    food.classList.remove('food');
-    createFood();
+  if (squares[currentSnake[0]].classList.contains('apple')) {
+    squares[currentSnake[0]].classList.remove('apple');
+    squares[tail].classList.add('snake');
+    currentSnake.push(tail);
+    randomApple();
     score++;
     scoreDisplay.textContent = score;
-    snakeBody.push([foodPositionX, foodPositionY]);
-    // console.log(snakeBody);
+    clearInterval(interval);
+    intervalTime = intervalTime * speed;
+    interval = setInterval(moveOutcomes, intervalTime);
+  }
+
+  squares[currentSnake[0]].classList.add('snake');
+}
+
+function randomApple() {
+  do {
+    appleIndex = Math.floor(Math.random() * squares.length);
+  } while(squares[appleIndex].classList.contains('snake'));
+  squares[appleIndex].classList.add('apple');
+}
+
+function control(e) {
+  squares[currentIndex].classList.remove('snake');
+
+  if (e.keyCode === 39) {
+    direction = 1;
+  } else if (e.keyCode === 38) {
+    direction = -width;
+  } else if (e.keyCode === 37) {
+    direction = -1;
+  } else if (e.keyCode === 40) {
+    direction = +width;
   }
 }
 
-function startGame() {
-  createFood();
-  createSnake();
-  document.addEventListener('keydown', changeDirection);
-}
-
-startGame();
+document.addEventListener('keyup', control);
+startBtn.addEventListener('click', startGame);
